@@ -5,9 +5,9 @@
 
 BufferDataPtr_t MemPoolTest::dataQ_ = nullptr;
 
-MemPoolTest::MemPoolTest(int threadCount) {
+MemPoolTest::MemPoolTest(int threadCount)
+        : workerThreads_(std::make_unique<ThreadVec_t>()) {
     threadCount_ = threadCount;
-    workerThreads_ = std::make_unique<ThreadVec_t>();
     if (workerThreads_ == nullptr) {
         std::cerr << __func__ << "[ERROR] workerThreads_ == nullptr" << std::endl;
     }
@@ -28,7 +28,7 @@ void MemPoolTest::runTest() {
 }
 
 [[noreturn]] void MemPoolTest::processorThread() {
-    while(true) {
+    while (true) {
         if (!dataQ_->empty()) {
             auto node = dataQ_->dequeue();
             if (node != nullptr) {
@@ -54,7 +54,7 @@ void MemPoolTest::runTest() {
     MEM_POOL()->registerType<BufferDataPtr_t>();
 
     for (auto i = 0; i < 10; i++) {
-        auto objSz = ((initialSz+i) % 4 == 0 ? initialSz+i : initialSz );
+        auto objSz = ((initialSz + i) % 4 == 0 ? initialSz + i : initialSz);
         initialSz = objSz;
         if (!MEM_POOL()->registerNewObject(i, initialSz)) {
             std::cerr << __func__ << " [ERROR] Unable to registerNewObject" << std::endl;
@@ -62,13 +62,13 @@ void MemPoolTest::runTest() {
     }
 
     uint64_t counter = 0;
-    while(true) {
-        auto ptr  = MEM_POOL()->getBuffer<int>();
+    while (true) {
+        auto ptr = MEM_POOL()->getBuffer<int>();
         auto ptr1 = MEM_POOL()->getBuffer<double>();
         auto ptr2 = MEM_POOL()->getBuffer<std::string>();
         auto ptr3 = MEM_POOL()->getBuffer<ThreadVec_t>();
         auto ptr4 = MEM_POOL()->getBuffer<ThreadsVecPtr_t>();
-        if (ptr  == nullptr || ptr1 == nullptr || ptr2 == nullptr || ptr3 == nullptr || ptr4 == nullptr) {
+        if (ptr == nullptr || ptr1 == nullptr || ptr2 == nullptr || ptr3 == nullptr || ptr4 == nullptr) {
             std::cerr << "Failure!" << std::endl;
         }
 
@@ -103,7 +103,7 @@ void MemPoolTest::sendToInternalQ(void *sptr) {
 
 void MemPoolTest::stopTest() {
     std::cout << "Stopping Test Suite..." << std::endl;
-    std::for_each(workerThreads_->begin(), workerThreads_->end(), [&] (auto& worker) {
+    std::for_each(workerThreads_->begin(), workerThreads_->end(), [&](auto &worker) {
         pthread_cancel(worker.native_handle());
     });
     pthread_cancel(static_cast<unsigned long>(procTid_.native_handle()));
