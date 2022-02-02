@@ -17,7 +17,6 @@ MemPoolTest::MemPoolTest(int threadCount)
 void MemPoolTest::runTest() {
     try {
         procTid_ = std::thread(&MemPoolTest::processorThread);
-//        for (auto i = 0; i < threadCount_; i++) {
         for (auto i = 0; i < 1; i++) {
             auto worker = std::thread(&MemPoolTest::workerRoutine);
             workerThreads_->push_back(std::move(worker));
