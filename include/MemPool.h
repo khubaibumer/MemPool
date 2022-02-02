@@ -142,7 +142,6 @@ private:
     uint64_t returnedFreeMemoryBlocks_;
 
     ObjectPoolPtr_t currPool_;
-
 };
 
 #define MEM_POOL() MemPool::getInstance()

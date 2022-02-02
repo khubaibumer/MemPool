@@ -81,7 +81,6 @@ typedef struct ObjectPool {
         }
         return true;
     }
-
 } ObjectPool_t;
 
 struct PointerNode {
