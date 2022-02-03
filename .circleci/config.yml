@@ -26,4 +26,4 @@ jobs:
       - run:
           name: Creating Binary Files
           command: 'cmake --build build'
-    parallelism: 4 
+    parallelism: 4
