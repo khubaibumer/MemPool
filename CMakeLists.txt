@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3)
+cmake_minimum_required(VERSION 3.12)
 project(MemPool)
 
 set(CMAKE_CXX_STANDARD 17)
