@@ -10,7 +10,7 @@ jobs:
       - checkout
       - run:
           name: Install tzdata
-          command: 'apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends  tzdata  && rm -rf /var/lib/apt/lists/*'
+          command: 'apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends  tzdata  && rm -rf /var/lib/apt/lists/* '
       - run:
           name: Installing SUDO
           command: 'apt-get update && apt-get install -y sudo && rm -rf /var/lib/apt/lists/*'
