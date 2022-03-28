@@ -15,14 +15,6 @@
 #include "Base/Lock.h"
 #include "Base/Constructs.h"
 
-// We want a static memory pool for HA sync requests
-// As we need to allocate/deallocate memory foreach request (We deep copy to counter long locks)
-// We are trying to have a singleton per thread to maximize our performance
-// The idea is that if each thread has its own memory pool then there is no need for locking
-class Logger;
-
-class aflock;
-
 class MemPool;
 
 using MemPoolPtr_t = std::shared_ptr<MemPool>;
