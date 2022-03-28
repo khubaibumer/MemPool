@@ -34,50 +34,50 @@ typedef struct ObjectPool {
 	PoolVecPtr_t pool_; // Vector of Data Nodes
 
 	[[nodiscard]] std::string str() const {
-		std::ostringstream ss;
-		ss << " [ " << std::endl;
-		ss << "\ttotalCount_: " << totalCount_ << std::endl;
-		ss << "\tcount_: " << count_ << std::endl;
-		ss << "\tsize_: " << size_ << std::endl;
-		ss << "\tindex_: " << index_ << std::endl;
-		ss << "]" << std::endl;
-		return ss.str();
+	  std::ostringstream ss;
+	  ss << " [ " << std::endl;
+	  ss << "\ttotalCount_: " << totalCount_ << std::endl;
+	  ss << "\tcount_: " << count_ << std::endl;
+	  ss << "\tsize_: " << size_ << std::endl;
+	  ss << "\tindex_: " << index_ << std::endl;
+	  ss << "]" << std::endl;
+	  return ss.str();
 	}
 
 	explicit ObjectPool(size_t volume, size_t size) {
-		totalCount_ = volume;
-		size_ = size;
-		count_ = 0;
-		index_ = 0;
-		pool_ = std::make_unique<PoolVec_t>();
-		chunkHead_ = calloc(volume + GUARD_BYTES_COUNT, size);
-		if (chunkHead_ == nullptr) {
-			std::cerr << __func__ << " [ERROR] chunkHead_ == nullptr" << std::endl;
-		}
-		int i = 0;
-		for (; i < totalCount_; i++) {
-			void *ref = ((uint8_t *)chunkHead_ + (size * i));
-			pool_->emplace_back(std::make_unique<PoolNode_t>(false, ref));
-		}
-		guard_ = ((uint8_t *)chunkHead_ + (size * i));
+	  totalCount_ = volume;
+	  size_ = size;
+	  count_ = 0;
+	  index_ = 0;
+	  pool_ = std::make_unique<PoolVec_t>();
+	  chunkHead_ = calloc(volume + GUARD_BYTES_COUNT, size);
+	  if (chunkHead_ == nullptr) {
+		std::cerr << __func__ << " [ERROR] chunkHead_ == nullptr" << std::endl;
+	  }
+	  int i = 0;
+	  for (; i < totalCount_; i++) {
+		void *ref = ((uint8_t *)chunkHead_ + (size * i));
+		pool_->emplace_back(std::make_unique<PoolNode_t>(false, ref));
+	  }
+	  guard_ = ((uint8_t *)chunkHead_ + (size * i));
 	}
 
 	ObjectPool() = delete;
 
 	~ObjectPool() {
-		if (chunkHead_) {
-			free(chunkHead_);
-			chunkHead_ = nullptr;
-		}
+	  if (chunkHead_) {
+		free(chunkHead_);
+		chunkHead_ = nullptr;
+	  }
 	}
 
 	[[nodiscard]] bool validatePool() const {
-		if (memcmp(guard_, gTestGuard, GUARD_BYTES_COUNT) != 0) {
-			std::cerr << __func__ << " Memory Corruption Detected (Overflow). Re-run with ASan recommended!"
-					  << std::endl;
-			return false;
-		}
-		return true;
+	  if (memcmp(guard_, gTestGuard, GUARD_BYTES_COUNT) != 0) {
+		std::cerr << __func__ << " Memory Corruption Detected (Overflow). Re-run with ASan recommended!"
+				  << std::endl;
+		return false;
+	  }
+	  return true;
 	}
 } ObjectPool_t;
 

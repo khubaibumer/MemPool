@@ -16,28 +16,28 @@ class SpinLock {
 		: name_(name), lock_(ATOMIC_FLAG_INIT), exhaust_limit_(get_exhaust_limit()) {}
 
 	static uint64_t get_exhaust_limit() {
-		std::thread::hardware_concurrency();
-		return 1000000;
+	  std::thread::hardware_concurrency();
+	  return 1000000;
 	}
 
 	__always_inline bool trylock() {
-		return lock_.test_and_set(std::memory_order_acquire);
+	  return lock_.test_and_set(std::memory_order_acquire);
 	}
 
 	bool lock() {
-		int count = 0;
-		clock_t start = clock();
-		while (((clock() - start) / CLOCKS_PER_SEC <= 10) || count < exhaust_limit_) {
-			if (trylock()) {
-				return true;
-			}
-			++count;
+	  int count = 0;
+	  clock_t start = clock();
+	  while (((clock() - start) / CLOCKS_PER_SEC <= 10) || count < exhaust_limit_) {
+		if (trylock()) {
+		  return true;
 		}
-		return false;
+		++count;
+	  }
+	  return false;
 	}
 
 	void unlock() {
-		lock_.clear(std::memory_order_release);
+	  lock_.clear(std::memory_order_release);
 	}
 
  private:
