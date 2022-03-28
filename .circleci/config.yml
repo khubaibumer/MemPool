@@ -1,0 +1,29 @@
+# Use the latest 2.1 version of CircleCI pipeline process engine.
+# See: https://circleci.com/docs/2.0/configuration-reference
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: "ubuntu:latest"
+    steps:
+      - checkout
+      - run:
+          name: Install tzdata
+          command: 'apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends  tzdata  && rm -rf /var/lib/apt/lists/* '
+      - run:
+          name: Installing SUDO
+          command: 'apt-get update && apt-get install -y sudo && rm -rf /var/lib/apt/lists/*'
+      - run:
+          name: Installing GCC
+          command: 'apt-get update && apt-get install -y gcc g++'
+      - run:
+          name: Install CMAKE
+          command: 'apt-get update && sudo apt-get install -y cmake'
+      - run:
+          name: Creating Build Files
+          command: 'cmake -H. -Bbuild'
+      - run:
+          name: Creating Binary Files
+          command: 'cmake --build build'
+    parallelism: 4
