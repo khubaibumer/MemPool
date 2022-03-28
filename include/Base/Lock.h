@@ -3,6 +3,7 @@
 #include <atomic>
 #include <thread>
 #include <string>
+#include <utility>
 
 class SpinLock {
  public:
@@ -12,12 +13,11 @@ class SpinLock {
 
 	SpinLock() : SpinLock("GiantLock") {}
 
-	explicit SpinLock(const std::string &name)
-		: name_(name), lock_(ATOMIC_FLAG_INIT), exhaust_limit_(get_exhaust_limit()) {}
+	explicit SpinLock(std::string name)
+		: name_(std::move(name)), lock_(ATOMIC_FLAG_INIT), exhaust_limit_(get_exhaust_limit()) {}
 
 	static uint64_t get_exhaust_limit() {
-	  std::thread::hardware_concurrency();
-	  return 1000000;
+	  return std::thread::hardware_concurrency() * 100000;
 	}
 
 	__always_inline bool trylock() {
@@ -39,6 +39,8 @@ class SpinLock {
 	void unlock() {
 	  lock_.clear(std::memory_order_release);
 	}
+
+	[[nodiscard]] const std::string& get_name() const { return name_; }
 
  private:
 	std::atomic_flag lock_;
