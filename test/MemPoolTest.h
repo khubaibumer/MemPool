@@ -1,11 +1,11 @@
 #pragma once
 
+#include "../include/MemPool.h"
+#include <condition_variable>
+#include <memory>
 #include <mutex>
 #include <queue>
 #include <thread>
-#include <condition_variable>
-#include <memory>
-#include "../include/MemPool.h"
 
 using ThreadVec_t = std::vector<std::thread>;
 using ThreadsVecPtr_t = std::unique_ptr<ThreadVec_t>;

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <atomic>
-#include <thread>
 #include <string>
+#include <thread>
 #include <utility>
 
 class SpinLock {
@@ -11,10 +11,12 @@ class SpinLock {
   SpinLock(SpinLock &&) = delete;
   ~SpinLock() = default;
 
-  SpinLock() : SpinLock("GiantLock") {}
+  SpinLock() : SpinLock("GiantLock") {
+  }
 
   explicit SpinLock(std::string name)
-	  : name_(std::move(name)), lock_(ATOMIC_FLAG_INIT), exhaust_limit_(get_exhaust_limit()) {}
+	  : name_(std::move(name)), lock_(ATOMIC_FLAG_INIT), exhaust_limit_(get_exhaust_limit()) {
+  }
 
   static uint64_t get_exhaust_limit() {
 	return std::thread::hardware_concurrency() * 100000;
@@ -40,11 +42,12 @@ class SpinLock {
 	lock_.clear(std::memory_order_release);
   }
 
-  [[nodiscard]] const std::string &get_name() const { return name_; }
+  [[nodiscard]] const std::string &get_name() const {
+	return name_;
+  }
 
  private:
   std::atomic_flag lock_;
   std::string name_;
   const uint64_t exhaust_limit_;
 };
-

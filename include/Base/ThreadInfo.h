@@ -12,7 +12,9 @@ namespace base {
    public:
 	static ThreadInfoPtr_t &getInstance();
 
-	[[nodiscard]] const std::string &getThreadName() const { return name_; }
+	[[nodiscard]] const std::string &getThreadName() const {
+	  return name_;
+	}
 
 	static uint64_t getSystemTime();
 
@@ -24,7 +26,9 @@ namespace base {
 
 	static uint getOccupancy();
 
-	[[nodiscard]] pthread_t getTid() const { return tid_; };
+	[[nodiscard]] pthread_t getTid() const {
+	  return tid_;
+	};
 
    private:
 	ThreadInfo();
@@ -37,6 +41,6 @@ namespace base {
 	const time_t creationTime_;
 	const pthread_t tid_;
   };
-}
+}// namespace base
 
 #define current base::ThreadInfo::getInstance()

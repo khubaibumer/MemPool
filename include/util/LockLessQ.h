@@ -11,7 +11,8 @@ class LockLessQ {
   LockLessQ(LockLessQ &&) = delete;
 
   ~LockLessQ() {
-	while (dequeue());
+	while (dequeue())
+	  ;
   }
 
   void enqueue(T *elem) {
@@ -38,7 +39,8 @@ class LockLessQ {
 	head_ = nullptr;
 
 	if (!tail_.compare_exchange_strong(node, nullptr, std::memory_order_seq_cst, std::memory_order_seq_cst)) {
-	  while ((node = elem->next_.load()) == nullptr);
+	  while ((node = elem->next_.load()) == nullptr)
+		;
 	  head_ = node;
 	}
 	elem->next_ = nullptr;

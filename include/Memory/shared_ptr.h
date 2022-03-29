@@ -17,7 +17,7 @@ namespace mem {
 	  this->ptr_ = other.ptr_;
 	  this->ref_count_ = other.ref_count_;
 	  if (other.ptr_ != nullptr) {
-		(*this->ref_count_)++; // Increase the Ref-Count
+		(*this->ref_count_)++;// Increase the Ref-Count
 	  }
 	}
 
@@ -36,7 +36,7 @@ namespace mem {
 		this->ptr_ = other.ptr_;
 		this->ref_count_ = other.ref_count_;
 		if (other.ptr_ != nullptr) {
-		  (*this->ref_count_)++; // Increase the Ref-Count
+		  (*this->ref_count_)++;// Increase the Ref-Count
 		}
 	  }
 	}
@@ -75,12 +75,12 @@ namespace mem {
   };
 
   template<typename T, typename... Args>
-  shared_ptr<T> make_shared(Args &&... args) {
+  shared_ptr<T> make_shared(Args &&...args) {
 	if (!MEM_POOL()->isRegisteredType<T>()) {
 	  MEM_POOL()->registerType<T>();
 	}
 	auto buffer = MEM_POOL()->getBuffer<T>();
-	auto ptr = new(buffer) T((args)...);
+	auto ptr = new (buffer) T((args)...);
 	return shared_ptr<T>(ptr);
   }
-}
+}// namespace mem

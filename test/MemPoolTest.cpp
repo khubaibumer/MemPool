@@ -1,14 +1,13 @@
-#include <unistd.h>
-#include <iostream>
-#include "../include/Base/ThreadInfo.h"
 #include "MemPoolTest.h"
+#include "../include/Base/ThreadInfo.h"
 #include "../include/Memory/shared_ptr.h"
 #include "../include/Memory/unique_ptr.h"
+#include <iostream>
+#include <unistd.h>
 
 BufferDataPtr_t MemPoolTest::dataQ_ = nullptr;
 
-MemPoolTest::MemPoolTest(int threadCount)
-	: workerThreads_(std::make_unique<ThreadVec_t>()) {
+MemPoolTest::MemPoolTest(int threadCount) : workerThreads_(std::make_unique<ThreadVec_t>()) {
   threadCount_ = threadCount;
   if (workerThreads_ == nullptr) {
 	std::cerr << __func__ << "[ERROR] workerThreads_ == nullptr" << std::endl;
@@ -49,7 +48,8 @@ struct X {
   float b {};
   float c {};
 
-  X() : x(1), y(2), z(3), a(1.0), b(2.0), c(3.14156) {}
+  X() : x(1), y(2), z(3), a(1.0), b(2.0), c(3.14156) {
+  }
 
   X(int _a, int _b, int _c) {
 	x = _a;
@@ -59,7 +59,6 @@ struct X {
 };
 
 [[noreturn]] void MemPoolTest::workerRoutine() {
-
   {
 	auto sptr = mem::make_shared<X>(1, 2, 3);
 	auto raw = sptr.get();
@@ -140,9 +139,8 @@ void MemPoolTest::sendToInternalQ(void *sptr) {
 
 void MemPoolTest::stopTest() {
   std::cout << "Stopping Test Suite..." << std::endl;
-  std::for_each(workerThreads_->begin(), workerThreads_->end(), [&](auto &worker) {
-	pthread_cancel(worker.native_handle());
-  });
+  std::for_each(workerThreads_->begin(), workerThreads_->end(),
+				[&](auto &worker) { pthread_cancel(worker.native_handle()); });
   pthread_cancel(static_cast<unsigned long>(procTid_.native_handle()));
   std::cout << "Test Suite Complete...!" << std::endl;
 }

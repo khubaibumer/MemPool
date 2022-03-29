@@ -1,7 +1,7 @@
 #include "../../include/Base/ThreadInfo.h"
 #include <sys/resource.h>
-#include <unistd.h>
 #include <syscall.h>
+#include <unistd.h>
 
 #define GET_TID() syscall(SYS_gettid)
 
@@ -9,18 +9,18 @@ namespace base {
 
   thread_local ThreadInfoPtr_t ThreadInfo::instance_ = nullptr;
 
-  ThreadInfo::ThreadInfo() : creationTime_(time(nullptr)), lastSysTime_(0), lastUsrTime_(0), tid_(GET_TID()) {}
+  ThreadInfo::ThreadInfo() : creationTime_(time(nullptr)), lastSysTime_(0), lastUsrTime_(0), tid_(GET_TID()) {
+  }
 
   ThreadInfoPtr_t &ThreadInfo::getInstance() {
 	static thread_local std::once_flag flag_;
-	std::call_once(flag_, [&]() {
-	  instance_.reset(new ThreadInfo());
-	});
+	std::call_once(flag_, [&]() { instance_.reset(new ThreadInfo()); });
 	return instance_;
   }
 
   uint64_t ThreadInfo::getSystemTime() {
-	struct rusage thStats {};
+	struct rusage thStats {
+	};
 	if (getrusage(RUSAGE_THREAD, &thStats) == 0) {
 	  return (thStats.ru_stime.tv_sec * (uint64_t)1000) + (thStats.ru_stime.tv_usec / 1000);
 	}
@@ -39,7 +39,8 @@ namespace base {
   }
 
   uint64_t ThreadInfo::getUserTime() {
-	struct rusage thStats {};
+	struct rusage thStats {
+	};
 	if (getrusage(RUSAGE_THREAD, &thStats) == 0) {
 	  return (thStats.ru_utime.tv_sec * (uint64_t)1000) + (thStats.ru_utime.tv_usec / 1000);
 	}
@@ -61,5 +62,4 @@ namespace base {
 	/* I need to calculate this Thread's occupancy here */
 	return 0;
   }
-}
-
+}// namespace base

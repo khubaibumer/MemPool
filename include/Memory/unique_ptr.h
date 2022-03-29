@@ -31,17 +31,18 @@ namespace mem {
 	  std::swap(result, ptr_);
 	  return result;
 	}
+
    private:
 	T *ptr_;
   };
 
   template<typename T, typename... Args>
-  unique_ptr<T> make_unique(Args &&... args) {
+  unique_ptr<T> make_unique(Args &&...args) {
 	if (!MEM_POOL()->isRegisteredType<T>()) {
 	  MEM_POOL()->registerType<T>();
 	}
 	auto buffer = MEM_POOL()->getBuffer<T>();
-	auto ptr = new(buffer) T((args)...);
+	auto ptr = new (buffer) T((args)...);
 	return unique_ptr<T>(ptr);
   }
-}
+}// namespace mem

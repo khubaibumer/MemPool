@@ -1,25 +1,24 @@
 #pragma once
 
-#include <vector>
+#include "../util/LockLessQ.h"
+#include <algorithm>
+#include <atomic>
+#include <cstring>
+#include <iostream>
 #include <memory>
 #include <sstream>
-#include <algorithm>
-#include <iostream>
-#include <cstring>
-#include <atomic>
-#include "../util/LockLessQ.h"
+#include <vector>
 
 #define GUARD_BYTES_COUNT 5
-#define CACHE_LINE_SIZE 64
 static const uint8_t gTestGuard[GUARD_BYTES_COUNT] = {0, 0, 0, 0, 0};
 
 typedef struct PoolNode {
-  bool inUse_; // Control Variable
-  void *data_; // Data Chunk
+  bool inUse_;// Control Variable
+  void *data_;// Data Chunk
   PoolNode() = delete;
 
-  explicit PoolNode(bool inUse, void *data)
-	  : inUse_(inUse), data_(data) {}
+  explicit PoolNode(bool inUse, void *data) : inUse_(inUse), data_(data) {
+  }
 } PoolNode_t;
 
 using PoolNodePtr_t = std::unique_ptr<PoolNode_t>;
@@ -27,13 +26,13 @@ using PoolVec_t = std::vector<PoolNodePtr_t>;
 using PoolVecPtr_t = std::unique_ptr<PoolVec_t>;
 
 typedef struct ObjectPool {
-  size_t totalCount_ {}; // Total Number of Objects Available
-  size_t size_; // Object Size
-  size_t count_; // Object Size
-  size_t index_; // Last accessed Index
+  size_t totalCount_ {};// Total Number of Objects Available
+  size_t size_;         // Object Size
+  size_t count_;        // Object Size
+  size_t index_;        // Last accessed Index
   void *chunkHead_;
   uint8_t *guard_;
-  PoolVecPtr_t pool_; // Vector of Data Nodes
+  PoolVecPtr_t pool_;// Vector of Data Nodes
 
   [[nodiscard]] std::string str() const {
 	std::ostringstream ss;
@@ -91,8 +90,8 @@ struct PointerNode {
   void *ptr_;
   std::atomic<PointerNode *> next_;
 
-  explicit PointerNode(void *ptr)
-	  : ptr_(ptr), next_(nullptr) {}
+  explicit PointerNode(void *ptr) : ptr_(ptr), next_(nullptr) {
+  }
 
   PointerNode() = delete;
 };
