@@ -47,9 +47,9 @@ typedef struct ObjectPool {
 	}
 
 	explicit ObjectPool(size_t volume, size_t size) {
-		if (size % CACHE_LINE_SIZE != 0) {
-			auto base = size / CACHE_LINE_SIZE;
-			size = (base + 1) * CACHE_LINE_SIZE;
+		if (size % 64 != 0) {
+			size += 64;
+			size = (size - (sizeof(int) * 2));
 		}
 		totalCount_ = volume;
 		size_ = size;
