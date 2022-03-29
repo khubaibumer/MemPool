@@ -18,11 +18,9 @@ namespace mem {
 
 	~unique_ptr() { MemPool::returnBuffer(ptr_); }
 
-	// Const correct access owned object
 	T *operator->() const { return ptr_; }
 	T &operator*() const { return *ptr_; }
 
-	// Access to smart pointer state
 	T *get() const { return ptr_; }
 	explicit operator bool() const { return ptr_; }
 
