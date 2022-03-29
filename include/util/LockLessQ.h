@@ -11,7 +11,7 @@ class LockLessQ {
 	LockLessQ(LockLessQ &&) = delete;
 
 	~LockLessQ() {
-		while(dequeue());
+		while (dequeue());
 	}
 
 	void enqueue(T *elem) {
@@ -26,7 +26,7 @@ class LockLessQ {
 		pred->next_.store(elem);
 	}
 
-	T* dequeue() {
+	T *dequeue() {
 		if (head_ == nullptr) {
 			return nullptr;
 		}
@@ -47,7 +47,7 @@ class LockLessQ {
 
 	[[maybe_unused]] std::size_t approx_size() { return size_; }
 
-	[[maybe_unused]] T* peek() { return head_; }
+	[[maybe_unused]] T *peek() { return head_; }
 
 	[[maybe_unused]] bool is_empty() { return head_ == nullptr; }
 

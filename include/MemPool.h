@@ -16,7 +16,6 @@
 #include "Base/Constructs.h"
 
 class MemPool;
-
 using MemPoolPtr_t = std::shared_ptr<MemPool>;
 using ObjectPoolPtr_t = std::shared_ptr<ObjectPool_t>;
 using ObjectMap_t = std::unordered_map<uint64_t, ObjectPoolPtr_t>;
