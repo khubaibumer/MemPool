@@ -14,26 +14,26 @@ using BufferDataPtr_t = std::shared_ptr<BufferData_t>;
 
 class MemPoolTest {
  public:
-	MemPoolTest() = delete;
+  MemPoolTest() = delete;
 
-	explicit MemPoolTest(int threadCount);
+  explicit MemPoolTest(int threadCount);
 
-	virtual ~MemPoolTest() = default;
+  virtual ~MemPoolTest() = default;
 
-	void runTest();
+  void runTest();
 
-	void stopTest();
-
- private:
-	static void sendToInternalQ(void *sptr);
-
-	[[noreturn]] static void processorThread();
-
-	[[noreturn]] static void workerRoutine();
+  void stopTest();
 
  private:
-	size_t threadCount_;
-	std::thread procTid_;
-	ThreadsVecPtr_t workerThreads_;
-	static BufferDataPtr_t dataQ_;
+  static void sendToInternalQ(void *sptr);
+
+  [[noreturn]] static void processorThread();
+
+  [[noreturn]] static void workerRoutine();
+
+ private:
+  size_t threadCount_;
+  std::thread procTid_;
+  ThreadsVecPtr_t workerThreads_;
+  static BufferDataPtr_t dataQ_;
 };

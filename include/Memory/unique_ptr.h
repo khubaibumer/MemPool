@@ -4,11 +4,11 @@
 
 namespace mem {
 
-using uint = unsigned int;
+  using uint = unsigned int;
 
-template<typename T>
-class unique_ptr {
- public:
+  template<typename T>
+  class unique_ptr {
+   public:
 	unique_ptr() : ptr_(nullptr) {}
 
 	explicit unique_ptr(T *ptr) : ptr_(ptr) {}
@@ -16,9 +16,7 @@ class unique_ptr {
 	unique_ptr(const unique_ptr &) = delete;
 	unique_ptr &operator=(const unique_ptr &) = delete;
 
-	~unique_ptr() {
-		MemPool::returnBuffer(ptr_);
-	}
+	~unique_ptr() { MemPool::returnBuffer(ptr_); }
 
 	// Const correct access owned object
 	T *operator->() const { return ptr_; }
@@ -29,22 +27,21 @@ class unique_ptr {
 	explicit operator bool() const { return ptr_; }
 
 	T *release() {
-		T *result = nullptr;
-		std::swap(result, ptr_);
-		return result;
+	  T *result = nullptr;
+	  std::swap(result, ptr_);
+	  return result;
 	}
- private:
+   private:
 	T *ptr_;
-};
+  };
 
-template<typename T, typename... Args>
-unique_ptr<T> make_unique(Args &&... args) {
+  template<typename T, typename... Args>
+  unique_ptr<T> make_unique(Args &&... args) {
 	if (!MEM_POOL()->isRegisteredType<T>()) {
-		MEM_POOL()->registerType<T>();
+	  MEM_POOL()->registerType<T>();
 	}
 	auto buffer = MEM_POOL()->getBuffer<T>();
 	auto ptr = new(buffer) T((args)...);
 	return unique_ptr<T>(ptr);
-}
-
+  }
 }
