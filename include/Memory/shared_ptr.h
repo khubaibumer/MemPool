@@ -21,7 +21,7 @@ class shared_ptr {
 		}
 	}
 
-	shared_ptr(shared_ptr &&old)  noexcept {
+	shared_ptr(shared_ptr &&old) noexcept {
 		this->ptr_ = old.ptr_;
 		this->ref_count_ = old.ref_count_;
 
@@ -39,7 +39,7 @@ class shared_ptr {
 		}
 	}
 
-	shared_ptr &operator=(shared_ptr &&old)  noexcept {
+	shared_ptr &operator=(shared_ptr &&old) noexcept {
 		__cleanup__();
 		this->ptr_ = old.ptr_;
 		this->ref_count_ = old.ref_count_;
@@ -73,12 +73,12 @@ class shared_ptr {
 };
 
 template<typename T, typename... Args>
-shared_ptr<T> make_shared(Args&&... args) {
+shared_ptr<T> make_shared(Args &&... args) {
 	if (!MEM_POOL()->isRegisteredType<T>()) {
 		MEM_POOL()->registerType<T>();
 	}
 	auto buffer = MEM_POOL()->getBuffer<T>();
-	auto ptr = new (buffer) T((args)...);
+	auto ptr = new(buffer) T((args)...);
 	return shared_ptr<T>(ptr);
 }
 

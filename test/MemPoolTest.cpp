@@ -3,6 +3,7 @@
 #include "../include/Base/ThreadInfo.h"
 #include "MemPoolTest.h"
 #include "../include/Memory/shared_ptr.h"
+#include "../include/Memory/unique_ptr.h"
 
 BufferDataPtr_t MemPoolTest::dataQ_ = nullptr;
 
@@ -63,6 +64,10 @@ struct X {
 	{
 		auto sptr = mem::make_shared<X>(1, 2, 3);
 		auto sptr1 = mem::shared_ptr(new X(1, 2, 3));
+
+		auto Gg = mem::make_unique<X>(1,2,3);
+		auto Gg2 = mem::make_unique<X>();
+		auto Gg1 = mem::unique_ptr<X>(new X(1,2,3));
 
 		{
 			auto sptr2 = sptr;
