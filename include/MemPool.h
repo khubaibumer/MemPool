@@ -43,6 +43,14 @@ class MemPool {
 	template<typename T>
 	__always_inline bool registerType() { return registerNewObject(typeid(T).hash_code(), sizeof(T)); }
 
+	/// @brief Check if Type T is already registered
+	/// @returns true if T is registered or false otherwise
+	template<typename T>
+	__always_inline bool isRegisteredType() {
+		const auto &itr = objectMap_->find(typeid(T).hash_code());
+		return (itr != objectMap_->end());
+	}
+
 	/// @brief  To get a buffer of given type
 	/// @param _id: ID of Object
 	/// @returns: a pre-allocated memory (nullptr if the key is invalid or due to mem exhaustion)

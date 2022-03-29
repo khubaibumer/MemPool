@@ -68,7 +68,7 @@ void MemPool::setPerObjectCount(size_t _volume) {
 bool MemPool::registerNewObject(int _id, size_t _size) {
   const auto &itr = objectMap_->find(_id);
   if (itr != objectMap_->end()) {
-	std::cerr << __func__ << " [ERROR] Key already Registered!" << std::endl;
+	std::cout << __func__ << " [INFO] Key already Registered!" << std::endl;
 	return false;
   }
 

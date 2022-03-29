@@ -2,6 +2,7 @@
 #include <iostream>
 #include "../include/Base/ThreadInfo.h"
 #include "MemPoolTest.h"
+#include "../include/Memory/shared_ptr.h"
 
 BufferDataPtr_t MemPoolTest::dataQ_ = nullptr;
 
@@ -39,7 +40,35 @@ void MemPoolTest::runTest() {
 	}
 }
 
+struct X {
+	int x;
+	int y;
+	int z;
+	float a{};
+	float b{};
+	float c{};
+
+	X() : x(1), y(2), z(3), a(1.0), b(2.0), c(3.14156)
+	{}
+
+	X(int _a, int _b, int _c) {
+		x = _a;
+		y = _b;
+		z = _c;
+	}
+};
+
 [[noreturn]] void MemPoolTest::workerRoutine() {
+
+	{
+		auto sptr = mem::make_shared<X>(1, 2, 3);
+		auto sptr1 = mem::shared_ptr(new X(1, 2, 3));
+
+		{
+			auto sptr2 = sptr;
+		}
+		auto sptr3 = std::move(sptr);
+	}
 	auto initialSz = 1024;
 
 	MEM_POOL()->registerType<int>();

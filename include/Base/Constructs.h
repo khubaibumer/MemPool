@@ -10,6 +10,7 @@
 #include "../util/LockLessQ.h"
 
 #define GUARD_BYTES_COUNT 5
+#define CACHE_LINE_SIZE 64
 static const uint8_t gTestGuard[GUARD_BYTES_COUNT] = {0, 0, 0, 0, 0};
 
 typedef struct PoolNode {
@@ -46,6 +47,10 @@ typedef struct ObjectPool {
 	}
 
 	explicit ObjectPool(size_t volume, size_t size) {
+		if (size % CACHE_LINE_SIZE != 0) {
+			auto base = size / CACHE_LINE_SIZE;
+			size = (base + 1) * CACHE_LINE_SIZE;
+		}
 		totalCount_ = volume;
 		size_ = size;
 		count_ = 0;
