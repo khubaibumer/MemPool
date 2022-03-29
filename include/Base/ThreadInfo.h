@@ -14,15 +14,15 @@ class ThreadInfo {
 
 	[[nodiscard]] const std::string &getThreadName() const { return name_; }
 
-	uint64_t getSystemTime();
+	static uint64_t getSystemTime();
 
-	uint64_t getSystemTimeSinceLast();
+	[[maybe_unused]] uint64_t getSystemTimeSinceLast();
 
-	uint64_t getUserTime();
+	static uint64_t getUserTime();
 
-	uint64_t getUserTimeSinceLast();
+	[[maybe_unused]] uint64_t getUserTimeSinceLast();
 
-	uint getOccupancy();
+	static uint getOccupancy();
 
 	[[nodiscard]] pthread_t getTid() const { return tid_; };
 

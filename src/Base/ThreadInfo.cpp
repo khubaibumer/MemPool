@@ -20,14 +20,14 @@ ThreadInfoPtr_t &ThreadInfo::getInstance() {
 }
 
 uint64_t ThreadInfo::getSystemTime() {
-	struct rusage thStats;
+	struct rusage thStats{};
 	if (getrusage(RUSAGE_THREAD, &thStats) == 0) {
 		return (thStats.ru_stime.tv_sec * (uint64_t)1000) + (thStats.ru_stime.tv_usec / 1000);
 	}
 	return 0;
 }
 
-uint64_t ThreadInfo::getSystemTimeSinceLast() {
+[[maybe_unused]] uint64_t ThreadInfo::getSystemTimeSinceLast() {
 	const auto curr = getSystemTime();
 	if (lastSysTime_ == 0) {
 		lastSysTime_ = curr;
@@ -39,14 +39,14 @@ uint64_t ThreadInfo::getSystemTimeSinceLast() {
 }
 
 uint64_t ThreadInfo::getUserTime() {
-	struct rusage thStats;
+	struct rusage thStats{};
 	if (getrusage(RUSAGE_THREAD, &thStats) == 0) {
 		return (thStats.ru_utime.tv_sec * (uint64_t)1000) + (thStats.ru_utime.tv_usec / 1000);
 	}
 	return 0;
 }
 
-uint64_t ThreadInfo::getUserTimeSinceLast() {
+[[maybe_unused]] uint64_t ThreadInfo::getUserTimeSinceLast() {
 	const auto curr = getUserTime();
 	if (lastUsrTime_ == 0) {
 		lastUsrTime_ = curr;

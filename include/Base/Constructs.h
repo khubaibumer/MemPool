@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cstring>
 #include <atomic>
+#include "../util/LockLessQ.h"
 
 #define GUARD_BYTES_COUNT 5
 static const uint8_t gTestGuard[GUARD_BYTES_COUNT] = {0, 0, 0, 0, 0};
@@ -83,10 +84,10 @@ typedef struct ObjectPool {
 
 struct PointerNode {
 	void *ptr_;
-	std::atomic<PointerNode *> _next;
+	std::atomic<PointerNode *> next_;
 
 	explicit PointerNode(void *ptr)
-		: ptr_(ptr), _next(ATOMIC_VAR_INIT(nullptr)) {}
+		: ptr_(ptr), next_(nullptr) {}
 
 	PointerNode() = delete;
 };

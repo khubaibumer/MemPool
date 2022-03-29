@@ -28,7 +28,7 @@ void MemPoolTest::runTest() {
 
 [[noreturn]] void MemPoolTest::processorThread() {
 	while (true) {
-		if (!dataQ_->empty()) {
+		if (!dataQ_->is_empty()) {
 			auto node = dataQ_->dequeue();
 			if (node != nullptr) {
 				MemPool::returnBuffer(node->ptr_);
@@ -95,7 +95,7 @@ void MemPoolTest::runTest() {
 }
 
 void MemPoolTest::sendToInternalQ(void *sptr) {
-	dataQ_->enqueue(new MemNode(sptr));
+	dataQ_->enqueue(new PointerNode(sptr));
 }
 
 void MemPoolTest::stopTest() {
@@ -107,7 +107,7 @@ void MemPoolTest::stopTest() {
 	std::cout << "Test Suite Complete...!" << std::endl;
 }
 
-int main(int argc, char **argv) {
+int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
 	MemPoolTest test(4);
 	test.runTest();
 	char x;
@@ -120,5 +120,4 @@ int main(int argc, char **argv) {
 			exit(0);
 		}
 	}
-	return 0;
 }

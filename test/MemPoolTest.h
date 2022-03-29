@@ -6,23 +6,10 @@
 #include <condition_variable>
 #include <memory>
 #include "../include/MemPool.h"
-#include "../include/util/OCQueue.h"
-
-struct MemNode {
-	explicit MemNode(void *ptr) : ptr_(ptr), _next(ATOMIC_VAR_INIT(nullptr)) {}
-
-	MemNode() = delete;
-
-	std::atomic<MemNode *> _next;
-
-	void *ptr_;
-};
-
-class Logger;
 
 using ThreadVec_t = std::vector<std::thread>;
 using ThreadsVecPtr_t = std::unique_ptr<ThreadVec_t>;
-using BufferData_t = OCQueue<MemNode>;
+using BufferData_t = LockLessQ<PointerNode>;
 using BufferDataPtr_t = std::shared_ptr<BufferData_t>;
 
 class MemPoolTest {
