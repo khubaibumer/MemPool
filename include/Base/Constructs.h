@@ -17,8 +17,7 @@ typedef struct PoolNode {
   void *data_;// Data Chunk
   PoolNode() = delete;
 
-  explicit PoolNode(bool inUse, void *data) : inUse_(inUse), data_(data) {
-  }
+  explicit PoolNode(bool inUse, void *data) : inUse_(inUse), data_(data) {}
 } PoolNode_t;
 
 using PoolNodePtr_t = std::unique_ptr<PoolNode_t>;
@@ -61,8 +60,7 @@ typedef struct ObjectPool {
 	}
 	int i = 0;
 	for (; i < totalCount_; i++) {
-	  void *ref = ((uint8_t *)chunkHead_ + (size * i));
-	  pool_->emplace_back(std::make_unique<PoolNode_t>(false, ref));
+	  pool_->emplace_back(std::make_unique<PoolNode_t>(false, ((uint8_t *)chunkHead_ + (size * i))));
 	}
 	guard_ = ((uint8_t *)chunkHead_ + (size * i));
   }
@@ -90,8 +88,7 @@ struct PointerNode {
   void *ptr_;
   std::atomic<PointerNode *> next_;
 
-  explicit PointerNode(void *ptr) : ptr_(ptr), next_(nullptr) {
-  }
+  explicit PointerNode(void *ptr) : ptr_(ptr), next_(nullptr) {}
 
   PointerNode() = delete;
 };

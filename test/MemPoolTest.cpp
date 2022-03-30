@@ -65,6 +65,8 @@ struct X {
 	auto sptr1 = mem::shared_ptr(new X(1, 2, 3));
 	auto cnt = sptr1.get_count();
 
+	sptr->x = 123;
+	raw->y = 321;
 	auto Gg = mem::make_unique<X>(1, 2, 3);
 	auto rg = Gg.get();
 	auto Gg2 = mem::make_unique<X>();
@@ -73,6 +75,8 @@ struct X {
 
 	auto lk = mem::shared_ptr<int>();
 	auto lk1 = mem::unique_ptr<int>();
+
+	mem::shared_ptr<long> koa = mem::shared_ptr<long>();
 
 	{
 	  auto sptr2 = sptr;
