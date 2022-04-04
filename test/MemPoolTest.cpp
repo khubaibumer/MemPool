@@ -59,7 +59,7 @@ struct X {
 };
 
 [[noreturn]] void MemPoolTest::workerRoutine() {
-  {
+  /*{
 	auto sptr = mem::make_shared<X>(1, 2, 3);
 	auto raw = sptr.get();
 	auto sptr1 = mem::shared_ptr(new X(1, 2, 3));
@@ -82,7 +82,7 @@ struct X {
 	  auto sptr2 = sptr;
 	}
 	auto sptr3 = std::move(sptr);
-  }
+  }*/
   auto initialSz = 1024;
 
   MEM_POOL()->registerType<int>();

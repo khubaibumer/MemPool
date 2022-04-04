@@ -1,18 +1,11 @@
 #include "../include/MemPool.h"
 #include "../include/Base/ThreadInfo.h"
 
-#define MEM_ACQUIRE_LOCK(obj) (obj).lock()
-#define MEM_TRY_LOCK(obj) (obj).trylock()
-#define MEM_UNLOCK(obj) (obj).unlock();
-#define MEM_LOCK_DECL(obj) \
-  SpinLock MemPool::obj {  \
-  }
-#define MEM_LOCK_INIT(obj)
-
 thread_local MemPoolPtr_t MemPool::instance_ = nullptr;
 std::atomic<bool> MemPool::houseKeepingInProg_ = false;
 PtrsCache_t MemPool::returnedMem_;
-MEM_LOCK_DECL(houseKeepingLock_);
+std::atomic<bool> MemPool::sharedBufferLock_ = false;
+SpinLock MemPool::houseKeepingLock_;
 
 MemPoolPtr_t &MemPool::getInstance() {
   static thread_local std::once_flag flag;
@@ -27,7 +20,6 @@ MemPool::MemPool()
   if (objectMap_ == nullptr) {
 	std::cerr << __func__ << " [ERROR] objectMap_ == nullptr" << std::endl;
   }
-  MEM_LOCK_INIT(houseKeepingLock_);
 }
 
 MemPool::~MemPool() {
@@ -44,10 +36,10 @@ bool MemPool::doHouseKeepingIfAllowed() {
   if (isUpperThresholdMet()) {
 	// This means that this memory pool is at 95% capacity; but the Thread is less than 88% Occupancy
 	// we need to do housekeeping to ensure proper working; we'll spin & block
-	MEM_ACQUIRE_LOCK(houseKeepingLock_);
+	houseKeepingLock_.lock();
 
 	mandatoryHouseKeepingCount_++;
-  } else if (houseKeepingInProg_ || (MEM_TRY_LOCK(houseKeepingLock_) == false)) {
+  } else if (houseKeepingInProg_ || !houseKeepingLock_.trylock()) {
 	// We'll try to lock this flag without spinning; if we don't get lock someone else is doing housekeeping
 	++houseKeepingDeferCount_;
 	return false;
@@ -55,7 +47,7 @@ bool MemPool::doHouseKeepingIfAllowed() {
   houseKeepingInProg_ = true;
   doHouseKeeping();
   houseKeepingCount_++;
-  MEM_UNLOCK(houseKeepingLock_);
+  houseKeepingLock_.unlock();
   houseKeepingInProg_ = false;
   return true;
 }
@@ -85,6 +77,30 @@ bool MemPool::validatePools() const {
 	}
   }
   return sane;
+}
+
+void* MemPool::getFromReturnBuffer() {
+  auto expected = false;
+  while (!sharedBufferLock_.compare_exchange_strong(expected, true, std::memory_order_acquire, std::memory_order_relaxed));
+  void *ptr = returnedMem_.front();
+  returnedMem_.pop_front();
+  sharedBufferLock_.store(false);
+  return ptr;
+}
+
+void MemPool::pushToReturnBuffer(void *ptr) {
+  auto expected = false;
+  while (!sharedBufferLock_.compare_exchange_strong(expected, true, std::memory_order_acquire, std::memory_order_relaxed));
+  returnedMem_.push_back(ptr);
+  sharedBufferLock_.store(false);
+}
+
+size_t MemPool::getReturnBufferSize() {
+  auto expected = false;
+  while (!sharedBufferLock_.compare_exchange_strong(expected, true, std::memory_order_acquire, std::memory_order_relaxed));
+  auto size = returnedMem_.size();
+  sharedBufferLock_.store(false);
+  return size;
 }
 
 void *MemPool::getBuffer(int _id) {
@@ -160,8 +176,8 @@ void MemPool::returnBuffer(void *_ptr) {
 	  instance_->doCleanup(obj->second, index);
 	}
   } else {
-	returnBufferSpecial(
-		_ptr);// We are not the owner of this memory; so lets transfer this pointer back to its owner thread
+	// We are not the owner of this memory; so lets transfer this pointer back to its owner thread
+	returnBufferSpecial(_ptr);
   }
 }
 
@@ -171,18 +187,17 @@ void MemPool::returnBufferSpecial(void *_ptr) {
 
   // we need to find the owner thread and make it use the returnBuffer(_ptr);
   // this would be so easy if instead of having raw threads I had a threadPool
-  returnedMem_.push_back(_ptr);// We'll insert this ptr to static list; We'll iterate over this list periodically
+  pushToReturnBuffer(_ptr);// We'll insert this ptr to static list; We'll iterate over this list periodically
 							   // from each thread and update dispatched_
 }
 
 void MemPool::doHouseKeeping() {
-  const auto size = returnedMem_.size();
+  const auto size = getReturnBufferSize();
   for (auto i = 0; i < size; ++i) {
 	if (current->getOccupancy() > threadOccupancyThreshold_) {// Premature Return if System is in Overload
 	  std::cerr << __func__ << "[ERROR] current->getOccupancy() > threadOccupancyThreshold_" << std::endl;
 	}
-	auto ptr = returnedMem_.front();
-	returnedMem_.pop_front();
+	auto ptr = getFromReturnBuffer();
 	auto itr = dispatched_.find(ptr);
 	if (itr != dispatched_.end()) {
 	  // If this is in dispatched map with a valid key that means that we should be able to use RandomAccess
@@ -211,7 +226,7 @@ void MemPool::doHouseKeeping() {
 	  dispatched_.erase(itr);
 	} else {
 	  // If I did not dispatch this pointer I need to re-insert this into the list
-	  returnedMem_.push_back(ptr);
+	  returnBufferSpecial(ptr);
 	}
   }
 }
@@ -236,7 +251,7 @@ std::string MemPool::stats(bool detailed) const {
 	  << " Mandatory HouseKeeping Count: " << this->mandatoryHouseKeepingCount_ << "|"
 	  << " Free Mem Count: " << this->freeMemoryBlocks_ << "|"
 	  << " Returned Free Mem Count: " << this->returnedFreeMemoryBlocks_ << "|"
-	  << " Gross Returned Mem Count: " << returnedMem_.size();
+	  << " Gross Returned Mem Count: " << getReturnBufferSize();
 
   if (detailed) {
 	for (const auto &node : *this->objectMap_) {

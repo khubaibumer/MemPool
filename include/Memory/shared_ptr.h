@@ -57,6 +57,10 @@ namespace mem {
 
 	T &operator*() const { return this->ptr_; }
 
+	void *operator new(size_t) { return shared_ptr<T>(); }
+
+	void operator delete(void *_this) { ((shared_ptr<T> *)_this)->adjust_ref_count(); }
+
 	~shared_ptr() { adjust_ref_count(); }
 
    private:

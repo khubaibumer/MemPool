@@ -3,12 +3,11 @@
 #include "Base/Constructs.h"
 #include "Base/Limits.h"
 #include "Base/Lock.h"
+#include "util/LockLessQ.h"
 #include <algorithm>
 #include <atomic>
-#include <deque>
 #include <list>
 #include <memory>
-#include <mutex>
 #include <sstream>
 #include <thread>
 #include <unordered_map>
@@ -46,7 +45,7 @@ class MemPool {
   /// @brief Check if Type T is already registered
   /// @returns true if T is registered or false otherwise
   template<typename T>
-  __always_inline bool isRegisteredType() {
+  __always_inline bool isRegisteredType() const {
 	const auto &itr = objectMap_->find(typeid(T).hash_code());
 	return (itr != objectMap_->end());
   }
@@ -113,6 +112,12 @@ class MemPool {
 
   static void doCleanup(ObjectPoolPtr_t &obj, size_t index);
 
+  static void *getFromReturnBuffer();
+
+  static void pushToReturnBuffer(void *ptr);
+
+  static size_t getReturnBufferSize();
+
  private:
   static thread_local MemPoolPtr_t instance_;
 
@@ -120,6 +125,8 @@ class MemPool {
 
   //                  ptr,    index, key
   std::unordered_map<void *, IndexKeyPair_t> dispatched_;
+
+  static std::atomic<bool> sharedBufferLock_;
 
   static PtrsCache_t returnedMem_;
 
