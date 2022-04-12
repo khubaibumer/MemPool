@@ -126,9 +126,9 @@ class MemPool {
   //                  ptr,    index, key
   std::unordered_map<void *, IndexKeyPair_t> dispatched_;
 
-  static std::atomic<bool> sharedBufferLock_;
+  static SpinLock sharedBufferLock_;
 
-  static PtrsCache_t returnedMem_;
+  static PtrsCache_t sharedBuffer_;
 
   size_t volume_;
 

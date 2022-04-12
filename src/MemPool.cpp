@@ -3,9 +3,9 @@
 
 thread_local MemPoolPtr_t MemPool::instance_ = nullptr;
 std::atomic<bool> MemPool::houseKeepingInProg_ = false;
-PtrsCache_t MemPool::returnedMem_;
-std::atomic<bool> MemPool::sharedBufferLock_ = false;
-SpinLock MemPool::houseKeepingLock_;
+PtrsCache_t MemPool::sharedBuffer_;
+SpinLock MemPool::sharedBufferLock_{};
+SpinLock MemPool::houseKeepingLock_{};
 
 MemPoolPtr_t &MemPool::getInstance() {
   static thread_local std::once_flag flag;
@@ -80,26 +80,23 @@ bool MemPool::validatePools() const {
 }
 
 void* MemPool::getFromReturnBuffer() {
-  auto expected = false;
-  while (!sharedBufferLock_.compare_exchange_strong(expected, true, std::memory_order_acquire, std::memory_order_relaxed));
-  void *ptr = returnedMem_.front();
-  returnedMem_.pop_front();
-  sharedBufferLock_.store(false);
+  sharedBufferLock_.lock();
+  void *ptr = sharedBuffer_.front();
+  sharedBuffer_.pop_front();
+  sharedBufferLock_.unlock();
   return ptr;
 }
 
 void MemPool::pushToReturnBuffer(void *ptr) {
-  auto expected = false;
-  while (!sharedBufferLock_.compare_exchange_strong(expected, true, std::memory_order_acquire, std::memory_order_relaxed));
-  returnedMem_.push_back(ptr);
-  sharedBufferLock_.store(false);
+  sharedBufferLock_.lock();
+  sharedBuffer_.push_back(ptr);
+  sharedBufferLock_.unlock();
 }
 
 size_t MemPool::getReturnBufferSize() {
-  auto expected = false;
-  while (!sharedBufferLock_.compare_exchange_strong(expected, true, std::memory_order_acquire, std::memory_order_relaxed));
-  auto size = returnedMem_.size();
-  sharedBufferLock_.store(false);
+  sharedBufferLock_.lock();
+  auto size = sharedBuffer_.size();
+  sharedBufferLock_.unlock();
   return size;
 }
 
