@@ -132,6 +132,10 @@ class MemPool {
 
   size_t volume_;
 
+  size_t getBufCount_;
+
+  size_t retBufCount_;
+
   const pthread_t myTid_;
 
   static std::atomic<bool> houseKeepingInProg_;

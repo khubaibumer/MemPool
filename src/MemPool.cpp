@@ -16,7 +16,7 @@ MemPoolPtr_t &MemPool::getInstance() {
 MemPool::MemPool()
 	: volume_(defaultVolume_), myTid_(current->getTid()), houseKeepingCount_(0), houseKeepingDeferCount_(0),
 	  mandatoryHouseKeepingCount_(0), freeMemoryBlocks_(0), returnedFreeMemoryBlocks_(0), currPool_(nullptr),
-	  objectMap_(std::make_shared<ObjectMap_t>()) {
+	  objectMap_(std::make_shared<ObjectMap_t>()), getBufCount_(0), retBufCount_(0) {
   if (objectMap_ == nullptr) {
 	std::cerr << __func__ << " [ERROR] objectMap_ == nullptr" << std::endl;
   }
@@ -101,6 +101,7 @@ size_t MemPool::getReturnBufferSize() {
 }
 
 void *MemPool::getBuffer(int _id) {
+  ++getBufCount_;
   const auto &itr = objectMap_->find(_id);
   if (itr == objectMap_->end()) {
 	std::cerr << __func__ << " [ERROR] Invalid Key Provided" << std::endl;
@@ -152,7 +153,8 @@ void *MemPool::getBuffer(int _id) {
 }
 
 void MemPool::returnBuffer(void *_ptr) {
-  if (instance_ && pthread_equal(current->getTid(), instance_->myTid_) == 0) {
+  if (instance_ && (current->getTid() == instance_->myTid_)) {
+	++instance_->retBufCount_;
 	// I'm returning my own buffer
 	const auto &itr = instance_->dispatched_.find(_ptr);// Find the dispatched entry
 	if (itr == instance_->dispatched_.end()) {
@@ -240,7 +242,9 @@ void MemPool::doCleanup(ObjectPoolPtr_t &obj, size_t index) {
 std::string MemPool::stats(bool detailed) const {
   std::ostringstream ret;
   ret << " [ ";
-  ret << " ThreadID: " << this->myTid_ << "|"
+  ret << " GetBufferCount: " << this->getBufCount_ << "|"
+	  << " ReturnBufferCount: " << this->retBufCount_ << "|"
+	  << " ThreadID: " << this->myTid_ << "|"
 	  << " MemPool size: " << this->objectMap_->size() << "|"
 	  << " In Use: " << this->dispatched_.size() << "|"
 	  << " HouseKeeping Count: " << this->houseKeepingCount_ << "|"

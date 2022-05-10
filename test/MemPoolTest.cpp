@@ -3,7 +3,9 @@
 #include "../include/Memory/shared_ptr.h"
 #include "../include/Memory/unique_ptr.h"
 #include <iostream>
+#include <set>
 #include <unistd.h>
+#include <cxxabi.h>
 
 BufferDataPtr_t MemPoolTest::dataQ_ = nullptr;
 
@@ -18,11 +20,11 @@ MemPoolTest::MemPoolTest(int threadCount) : workerThreads_(std::make_unique<Thre
 void MemPoolTest::runTest() {
   try {
 	procTid_ = std::thread(&MemPoolTest::processorThread);
-	for (auto i = 0; i < 1; i++) {
+	for (auto i = 0; i < threadCount_; i++) {
 	  auto worker = std::thread(&MemPoolTest::workerRoutine);
 	  workerThreads_->push_back(std::move(worker));
 	}
-  } catch (std::exception &e) {
+  } catch (const std::exception &e) {
 	std::cout << "Exception: " << e.what() << std::endl;
   }
 }
@@ -93,6 +95,8 @@ struct X {
   MEM_POOL()->registerType<BufferData_t>();
   MEM_POOL()->registerType<BufferDataPtr_t>();
 
+  timespec sleepTime = {.tv_sec = 0, .tv_nsec = 3};
+
   for (auto i = 0; i < 10; i++) {
 	auto objSz = ((initialSz + i) % 4 == 0 ? initialSz + i : initialSz);
 	initialSz = objSz;
@@ -102,38 +106,55 @@ struct X {
   }
 
   uint64_t counter = 0;
-  while (true) {
-	auto ptr = MEM_POOL()->getBuffer<int>();
-	auto ptr1 = MEM_POOL()->getBuffer<double>();
-	auto ptr2 = MEM_POOL()->getBuffer<std::string>();
-	auto ptr3 = MEM_POOL()->getBuffer<ThreadVec_t>();
-	auto ptr4 = MEM_POOL()->getBuffer<ThreadsVecPtr_t>();
-	if (ptr == nullptr || ptr1 == nullptr || ptr2 == nullptr || ptr3 == nullptr || ptr4 == nullptr) {
-	  std::cerr << "Failure!" << std::endl;
+  try {
+	while (true) {
+	  auto ptr = MEM_POOL()->getBuffer<int>();
+	  auto ptr1 = MEM_POOL()->getBuffer<double>();
+	  auto ptr2 = MEM_POOL()->getBuffer<std::string>();
+	  auto ptr3 = MEM_POOL()->getBuffer<ThreadVec_t>();
+	  auto ptr4 = MEM_POOL()->getBuffer<ThreadsVecPtr_t>();
+	  if (ptr == nullptr || ptr1 == nullptr || ptr2 == nullptr || ptr3 == nullptr || ptr4 == nullptr) {
+		std::cerr << "Failure!" << std::endl;
+	  }
+
+	  nanosleep(&sleepTime, nullptr);
+	  std::vector<int> dummyVec;
+	  std::set<int> dummyMap;
+	  for (auto i = 0; i < 1000; ++i) {
+		dummyVec.push_back(rand());
+	  }
+	  dummyVec.resize(950);
+
+	  for (const auto &it : dummyVec) {
+		dummyMap.emplace(it);
+	  }
+
+	  if (counter % 100 == 0) {
+		std::cout << "+";
+	  }
+	  if (counter % 5000 == 0) {
+		std::cout << std::endl;
+	  }
+
+	  if (counter % 50 == 0) {
+		MemPool::returnBuffer(ptr);
+		MemPool::returnBuffer(ptr1);
+		MemPool::returnBuffer(ptr2);
+		MemPool::returnBuffer(ptr3);
+		MemPool::returnBuffer(ptr4);
+	  } else {
+		sendToInternalQ(ptr);
+		sendToInternalQ(ptr1);
+		sendToInternalQ(ptr2);
+		sendToInternalQ(ptr3);
+		sendToInternalQ(ptr4);
+	  }
+	  counter++;
 	}
-
-	usleep(100);
-
-	if (counter % 5000 == 0) {
-	  std::cout << current->getTid() << " :" << MEM_POOL()->stats(true) << std::endl;
-	  MEM_POOL()->validatePools();
-	}
-
-	if (counter % 50 == 0) {
-	  MemPool::returnBuffer(ptr);
-	  MemPool::returnBuffer(ptr1);
-	  MemPool::returnBuffer(ptr2);
-	  MemPool::returnBuffer(ptr3);
-	  MemPool::returnBuffer(ptr4);
-	} else {
-	  sendToInternalQ(ptr);
-	  sendToInternalQ(ptr1);
-	  sendToInternalQ(ptr2);
-	  sendToInternalQ(ptr3);
-	  sendToInternalQ(ptr4);
-	}
-
-	counter++;
+  } catch (const abi::__forced_unwind &) {
+	std::cout << current->getTid() << " :" << MEM_POOL()->stats(true) << std::endl;
+	MEM_POOL()->validatePools();
+	throw;
   }
 }
 
@@ -145,20 +166,19 @@ void MemPoolTest::stopTest() {
   std::cout << "Stopping Test Suite..." << std::endl;
   std::for_each(workerThreads_->begin(), workerThreads_->end(),
 				[&](auto &worker) { pthread_cancel(worker.native_handle()); });
-  pthread_cancel(static_cast<unsigned long>(procTid_.native_handle()));
+  pthread_cancel(procTid_.native_handle());
   std::cout << "Test Suite Complete...!" << std::endl;
 }
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
-  MemPoolTest test(4);
+  MemPoolTest test(10);
   test.runTest();
   char x;
   while (true) {
 	std::cin >> x;
 	if (x == 'q') {
 	  test.stopTest();
-	  sleep(30);
-	  sleep(3);
+	  sleep(5);
 	  exit(0);
 	}
   }
