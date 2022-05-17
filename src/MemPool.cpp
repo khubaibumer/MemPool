@@ -14,9 +14,12 @@ MemPoolPtr_t &MemPool::getInstance() {
 }
 
 MemPool::MemPool()
-	: volume_(defaultVolume_), myTid_(current->getTid()), houseKeepingCount_(0), houseKeepingDeferCount_(0),
-	  mandatoryHouseKeepingCount_(0), freeMemoryBlocks_(0), returnedFreeMemoryBlocks_(0), currPool_(nullptr),
-	  objectMap_(std::make_shared<ObjectMap_t>()), getBufCount_(0), retBufCount_(0) {
+	: volume_(defaultVolume_), myTid_(current->getTid()),
+	  houseKeepingCount_(0), houseKeepingDeferCount_(0),
+	  mandatoryHouseKeepingCount_(0), freeMemoryBlocks_(0),
+	  returnedFreeMemoryBlocks_(0), currPool_(nullptr),
+	  objectMap_(std::make_shared<ObjectMap_t>()),
+	  getBufCount_(0), retBufCount_(0) {
   if (objectMap_ == nullptr) {
 	std::cerr << __func__ << " [ERROR] objectMap_ == nullptr" << std::endl;
   }
